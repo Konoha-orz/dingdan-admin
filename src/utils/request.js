@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
+import router from '@/router'
 import { getToken } from '@/utils/auth'
 
 // create an axios instance
@@ -19,7 +20,7 @@ service.interceptors.request.use(
       // let each request carry token
       // ['X-Token'] is a custom headers key
       // please modify it according to the actual situation
-      config.headers['X-Token'] = getToken()
+      config.headers['Authorization'] = getToken()
     }
     return config
   },
@@ -45,6 +46,8 @@ service.interceptors.response.use(
   response => {
     const res = response.data
     if (response.status === 401) {
+      this.$store.dispatch('user/logout')
+      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
       Message({
         message: res.message || '重新登录',
         type: 'error',
@@ -52,9 +55,14 @@ service.interceptors.response.use(
       })
     }
     // if the custom code is not 20000, it is judged as an error.
-    if (!res.success) {
+
+    // 开发（兼容Mock响应处理）
+    if ((res.success == null && res.code !== 20000) || (res.success != null && (!res.success))) {
+    // 生产
+    // if (!res.success) {
+
       Message({
-        message: res.message || '请求错误',
+        message: res.msg || '请求错误',
         type: 'error',
         duration: 5 * 1000
       })
@@ -78,6 +86,18 @@ service.interceptors.response.use(
     }
   },
   error => {
+    // 401
+    if (error.response.status === 401) {
+      store.dispatch('user/logout')
+      router.push(`/login`)
+      Message({
+        message: error.response.data.msg,
+        type: 'error',
+        duration: 5 * 1000
+      })
+      return Promise.reject(error)
+    }
+
     console.log('err' + error) // for debug
     Message({
       message: error.message,

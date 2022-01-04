@@ -8,6 +8,13 @@ export function fetchList(data) {
   })
 }
 
+export function fetchDetail(code) {
+  return request({
+    url: `/admin/sales/production/order/by/code/${code}`,
+    method: 'get'
+  })
+}
+
 export function fetchArticle(id) {
   return request({
     url: '/vue-element-admin/article/detail',

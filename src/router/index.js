@@ -12,6 +12,7 @@ import chartsRouter from './modules/charts'
 import tableRouter from './modules/table'
 import nestedRouter from './modules/nested'
 import ordersRouter from './modules/orders'
+import dictionaryRouter from './modules/dictionary'
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
@@ -79,7 +80,7 @@ export const constantRoutes = [
       {
         path: 'dashboard',
         component: () => import('@/views/dashboard/index'),
-        name: 'Dashboard',
+        name: '首页',
         meta: { title: '首页', icon: 'dashboard', affix: true }
       }
     ]
@@ -131,6 +132,7 @@ export const constantRoutes = [
  */
 export const asyncRoutes = [
   ordersRouter,
+  dictionaryRouter,
   {
     path: '/permission',
     component: Layout,
