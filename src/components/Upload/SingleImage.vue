@@ -1,33 +1,18 @@
 <template>
-  <div class="upload-container">
-    <el-upload
-      :data="dataObj"
-      :multiple="false"
-      :show-file-list="false"
-      :on-success="handleImageSuccess"
-      class="image-uploader"
-      drag
-      action="https://httpbin.org/post"
-    >
-      <i class="el-icon-upload" />
-      <div class="el-upload__text">
-        将文件拖到此处，或<em>点击上传</em>
-      </div>
-    </el-upload>
-    <div class="image-preview">
-      <div v-show="imageUrl.length>1" class="image-preview-wrapper">
-        <img :src="imageUrl+'?imageView2/1/w/200/h/200'">
-        <div class="image-preview-action">
-          <i class="el-icon-delete" @click="rmImage" />
-        </div>
-      </div>
-    </div>
-  </div>
+  <el-upload
+    class="avatar-uploader"
+    :action="OSS_HOST"
+    :show-file-list="false"
+    :on-success="handleImageSuccess"
+    :before-upload="beforeUpload"
+    :data="data"
+  >
+    <img v-if="value" :src="IMG_PREFIX+value" class="avatar">
+    <i v-else class="el-icon-plus avatar-uploader-icon" />
+  </el-upload>
 </template>
 
 <script>
-import { getToken } from '@/api/qiniu'
-
 export default {
   name: 'SingleImageUpload',
   props: {
@@ -38,8 +23,7 @@ export default {
   },
   data() {
     return {
-      tempUrl: '',
-      dataObj: { token: '', key: '' }
+      data: null
     }
   },
   computed: {
@@ -48,87 +32,76 @@ export default {
     }
   },
   methods: {
-    rmImage() {
-      this.emitInput('')
+    handleImageSuccess(res, file) {
+      this.$emit('update:value', '/' + this.data.key)
     },
-    emitInput(val) {
-      this.$emit('input', val)
-    },
-    handleImageSuccess() {
-      this.emitInput(this.tempUrl)
-    },
-    beforeUpload() {
+    beforeUpload(file) {
       const _self = this
-      return new Promise((resolve, reject) => {
-        getToken().then(response => {
-          const key = response.data.qiniu_key
-          const token = response.data.qiniu_token
-          _self._data.dataObj.token = token
-          _self._data.dataObj.key = key
-          this.tempUrl = response.data.qiniu_url
-          resolve(true)
-        }).catch(err => {
-          console.log(err)
-          reject(false)
+
+      // 不大于5M
+      const isLt5M = file.size / 1024 / 1024 < 5
+
+      if (!isLt5M) {
+        _self.$message.error('上传头像图片大小不能超过 5MB!')
+        return false
+      }
+
+      const date = new Date()
+      // 文件名
+      const key = date.getFullYear() + '-' + (date.getMonth() + 1) + '/' + date.getDate() + '/' + file.uid + file.name
+
+      // 校验OSS签名
+      if (_self.data && _self.data.expireTime > (new Date().getTime())) {
+        console.log('====')
+        _self.data.key = key
+        return true
+      } else {
+        console.log('====2')
+        return new Promise((resolve, reject) => {
+          _self.$store.dispatch('user/getOssInfo').then(response => {
+            const data = {
+              key,
+              policy: response.policy,
+              OSSAccessKeyId: response.accessId,
+              signature: response.signature,
+              expireTime: response.expireTime
+            }
+            _self.data = data
+            resolve(true)
+          }).catch(err => {
+            console.log(err)
+            reject(false)
+          })
         })
-      })
+      }
     }
   }
 }
 </script>
 
-<style lang="scss" scoped>
-    @import "~@/styles/mixin.scss";
-    .upload-container {
-        width: 100%;
-        position: relative;
-        @include clearfix;
-        .image-uploader {
-            width: 60%;
-            float: left;
-        }
-        .image-preview {
-            width: 200px;
-            height: 200px;
-            position: relative;
-            border: 1px dashed #d9d9d9;
-            float: left;
-            margin-left: 50px;
-            .image-preview-wrapper {
-                position: relative;
-                width: 100%;
-                height: 100%;
-                img {
-                    width: 100%;
-                    height: 100%;
-                }
-            }
-            .image-preview-action {
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                left: 0;
-                top: 0;
-                cursor: default;
-                text-align: center;
-                color: #fff;
-                opacity: 0;
-                font-size: 20px;
-                background-color: rgba(0, 0, 0, .5);
-                transition: opacity .3s;
-                cursor: pointer;
-                text-align: center;
-                line-height: 200px;
-                .el-icon-delete {
-                    font-size: 36px;
-                }
-            }
-            &:hover {
-                .image-preview-action {
-                    opacity: 1;
-                }
-            }
-        }
-    }
+<style>
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
 
+  }
 </style>

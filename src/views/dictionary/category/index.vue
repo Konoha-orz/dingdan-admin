@@ -107,7 +107,7 @@ export default {
       })
     },
     loadNode(node, resolve) {
-      if (node.data.childSize < 1) return resolve([])
+      if (node.level === 0 || node.data.childSize < 1) return resolve([])
       DictionaryModel.fetchCategoryChildren(node.data.code, { deleted: false }).then(response => {
         this.$set(node.data, 'children', response.data)
         resolve(response.data)
@@ -119,7 +119,7 @@ export default {
     },
     append(node, data) {
       // 添加节点为当前节点
-      this.currentParentNode = node
+      this.currentParentNode = node.parent
       this.formData = {
         parentCode: data.code
       }
@@ -147,6 +147,7 @@ export default {
       // 是否有父节点
       const parentNode = this.currentParentNode
       if (parentNode && parentNode.level > 0) {
+        console.log(parentNode)
         DictionaryModel.fetchCategoryChildren(parentNode.data.code, { deleted: false }).then(response => {
           parentNode.childNodes = []
           this.$set(parentNode.data, 'children', response.data)

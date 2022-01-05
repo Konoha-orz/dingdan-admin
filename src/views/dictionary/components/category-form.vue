@@ -1,11 +1,9 @@
 <template>
   <div>
     <el-form ref="form" v-loading="loading" :rules="rules" :model="data" label-position="left" label-width="70px" class="dictionary-form">
-      <el-image
-        style="width: 100px; height: 100px"
-        :src="data.imgUrl"
-        fit="cover"
-      />
+      <el-form-item label="图片">
+        <single-image-upload :value.sync="data.imgUrl" />
+      </el-form-item>
       <el-form-item label="ID">
         <span>{{ data.id }}</span>
       </el-form-item>
@@ -18,9 +16,6 @@
       <el-form-item label="名称" prop="name">
         <el-input v-model="data.name" placeholder="请输入名称" class="form-input" />
       </el-form-item>
-      <el-form-item label="图片">
-        <el-input v-model="data.imgUrl" class="form-input" />
-      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="onSubmit">确认</el-button>
         <el-button @click="onCancel">取消</el-button>
@@ -30,9 +25,13 @@
 </template>
 <script>
 import { saveCategory } from '@/api/dictionary'
+import SingleImageUpload from '@/components/Upload/SingleImage'
 
 export default {
   name: 'CategoryForm',
+  components: {
+    SingleImageUpload
+  },
   props: {
     data: {
       type: Object,
@@ -56,6 +55,9 @@ export default {
         ]
       }
     }
+  },
+  created() {
+
   },
   methods: {
     onSubmit() {
@@ -85,6 +87,7 @@ export default {
       this.$emit('cancel')
     }
   }
+
 }
 </script>
 <style>

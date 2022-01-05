@@ -119,7 +119,7 @@ export default {
     },
     append(node, data) {
       // 添加节点为当前节点
-      this.currentParentNode = node
+      this.currentParentNode = node.parent
       this.formData = {
         parentCode: data.code
       }

@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, logout, getInfo, getOssSignature } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
@@ -7,7 +7,11 @@ const state = {
   name: '',
   avatar: '',
   introduction: '',
-  roles: []
+  roles: [],
+  account: '',
+  mobile: '',
+  id: '',
+  ossInfo: ''
 }
 
 const mutations = {
@@ -25,6 +29,18 @@ const mutations = {
   },
   SET_ROLES: (state, roles) => {
     state.roles = roles
+  },
+  SET_ACCOUNT: (state, account) => {
+    state.account = account
+  },
+  SET_MOBILE: (state, mobile) => {
+    state.mobile = mobile
+  },
+  SET_ID: (state, id) => {
+    state.id = id
+  },
+  SET_OSS_INFO: (state, ossInfo) => {
+    state.ossInfo = ossInfo
   }
 }
 
@@ -47,33 +63,24 @@ const actions = {
   // get user info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
-      getInfo()
-      // getInfo(state.token).then(response => {
-      // const { data } = response
-      // if (!data) {
-      //   reject('Verification failed, please Login again.')
-      // }
+      getInfo(state.token).then(response => {
+        const { data } = response
+        if (!data) {
+          reject('Verification failed, please Login again.')
+        }
+        const { id, username, mobile, account } = data
 
-      // const { roles, name, avatar, introduction } = data
-
-      const data = {
-        roles: ['admin'],
-        introduction: 'I am a super administrator',
-        avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-        name: 'Super Admin'
-      }
-
-      const { roles, name, avatar, introduction } = data
-
-      commit('SET_ROLES', roles)
-      commit('SET_NAME', name)
-      commit('SET_AVATAR', avatar)
-      commit('SET_INTRODUCTION', introduction)
-      resolve(data)
-      // }).catch(error => {
-      //   console.log('-----')
-      //   reject(error)
-      // })
+        commit('SET_ROLES', ['admin'])
+        commit('SET_NAME', username)
+        commit('SET_AVATAR', 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif')
+        commit('SET_INTRODUCTION', mobile)
+        commit('SET_ACCOUNT', account)
+        commit('SET_MOBILE', mobile)
+        commit('SET_ID', id)
+        resolve({ roles: ['admin'] })
+      }).catch(error => {
+        reject(error)
+      })
     })
   },
 
@@ -125,7 +132,29 @@ const actions = {
 
     // reset visited views and cached views
     dispatch('tagsView/delAllViews', null, { root: true })
+  },
+
+  getOssInfo({ commit, state }) {
+    return new Promise((resolve, reject) => {
+      // 获取本地
+      const info = state.ossInfo
+      if (info && info.expireTime > (new Date().getTime())) {
+        resolve(info)
+      } else {
+        getOssSignature().then(response => {
+          const { data } = response
+          if (!data) {
+            reject('验证失效，请重新登录')
+          }
+          commit('SET_OSS_INFO', data)
+          resolve(data)
+        }).catch(error => {
+          reject(error)
+        })
+      }
+    })
   }
+
 }
 
 export default {

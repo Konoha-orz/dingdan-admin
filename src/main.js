@@ -44,6 +44,7 @@ Object.keys(filters).forEach(key => {
 })
 
 Vue.prototype.IMG_PREFIX = 'https://dingdan-cdn.nbyjy.net'
+Vue.prototype.OSS_HOST = 'https://dingdan-public.oss-cn-guangzhou.aliyuncs.com'
 Vue.config.productionTip = false
 
 new Vue({
