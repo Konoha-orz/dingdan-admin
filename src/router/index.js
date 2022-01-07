@@ -13,6 +13,8 @@ import tableRouter from './modules/table'
 import nestedRouter from './modules/nested'
 import ordersRouter from './modules/orders'
 import dictionaryRouter from './modules/dictionary'
+import usersRouter from './modules/users'
+import companyRouter from './modules/company'
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
@@ -131,6 +133,8 @@ export const constantRoutes = [
  * the routes that need to be dynamically loaded based on user roles
  */
 export const asyncRoutes = [
+  usersRouter,
+  companyRouter,
   ordersRouter,
   dictionaryRouter,
   {

@@ -29,3 +29,12 @@ export function getOssSignature() {
     method: 'get'
   })
 }
+
+// 用户列表
+export function fetchList(data) {
+  return request({
+    url: '/admin/user/search',
+    method: 'post',
+    data
+  })
+}

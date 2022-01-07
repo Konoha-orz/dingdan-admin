@@ -24,7 +24,13 @@ const ordersRouter = {
       name: 'SaleProductionOrderDetail',
       props: true,
       hidden: true, // 不在导航栏显示
-      meta: { title: '订单详情' }}
+      meta: { title: '订单详情' }},
+    {
+      path: 'pay-order',
+      component: () => import('@/views/orders/pay-order/index'),
+      name: 'PayOrders',
+      meta: { title: '支付单' }
+    }
   ]
 }
 
